@@ -35,7 +35,10 @@ function formatDay(dateStr) {
 }
 
 export default function App() {
-  const [location, setLocation] = useState("london");
+  const [location, setLocation] = useState(function () {
+    const storedLocation = localStorage.getItem("location");
+    return storedLocation ? storedLocation : "";
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [displayLocation, setDisplayLocation] = useState("");
   const [weather, setWeather] = useState({});
@@ -87,6 +90,8 @@ export default function App() {
       }
 
       fetchWeather();
+      // set location in storage
+      localStorage.setItem("location", location);
     },
     [location]
   );
@@ -101,8 +106,7 @@ export default function App() {
       />
       {/* <button onClick={this.fetchWeather}>Get Weather</button> */}
       {isLoading && <p className="loader">Loading ...</p>}
-      {/* {console.log(weatherCodes.length)} */}
-      {weather.weathercode && (
+      {weather?.weathercode && (
         <Weather
           weather={weather}
           location={displayLocation}
