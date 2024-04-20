@@ -1,10 +1,6 @@
-import { useState } from "react";
-
-export default function App(){
-
-
-
-}
+import { useEffect, useState } from "react";
+import Input from "./components/Input";
+import Weather from "./components/Weather.js";
 
 function getWeatherIcon(wmoCode) {
   const icons = new Map([
@@ -36,4 +32,84 @@ function formatDay(dateStr) {
   return new Intl.DateTimeFormat("en", {
     weekday: "short",
   }).format(new Date(dateStr));
+}
+
+export default function App() {
+  const [location, setLocation] = useState("london");
+  const [isLoading, setIsLoading] = useState(false);
+  const [displayLocation, setDisplayLocation] = useState("");
+  const [weather, setWeather] = useState({});
+
+  function handleChange(e) {
+    setLocation(e.target.value);
+  }
+
+  // function handleKeyPress(e) {
+  //   if (e.key === "Enter") {
+  //     fetchWeather();
+  //   }
+  // }
+
+  useEffect(
+    function () {
+      async function fetchWeather() {
+        if (location.length < 2) {
+          setWeather({});
+        }
+
+        try {
+          setIsLoading(true);
+          const geoRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${location}`
+          );
+          const geoData = await geoRes.json();
+
+          if (!geoData.results) throw new Error("Location not found");
+
+          const { latitude, longitude, timezone, name, country_code } =
+            geoData.results.at(0);
+          console.log(`${name} ${convertToFlag(country_code)}`);
+
+          setDisplayLocation(`${name} ${convertToFlag(country_code)}`);
+
+          const weatherRes = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&timezone=${timezone}&daily=weathercode,temperature_2m_max,temperature_2m_min`
+          );
+
+          const weatherData = await weatherRes.json();
+          console.log(weatherData);
+          setWeather(weatherData.daily);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      fetchWeather();
+    },
+    [location]
+  );
+
+  return (
+    <div className="app">
+      <h1>Classy Weather</h1>
+      <Input
+        location={location}
+        onChangeLocation={handleChange}
+        // onKeyPress={this.handleKeyPress}
+      />
+      {/* <button onClick={this.fetchWeather}>Get Weather</button> */}
+      {isLoading && <p className="loader">Loading ...</p>}
+      {/* {console.log(weatherCodes.length)} */}
+      {weather.weathercode && (
+        <Weather
+          weather={weather}
+          location={displayLocation}
+          getWeatherIcon={getWeatherIcon}
+          formatDay={formatDay}
+        />
+      )}
+    </div>
+  );
 }
