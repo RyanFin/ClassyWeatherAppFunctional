@@ -1,25 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App(){
+
+
+
 }
 
-export default App;
+function getWeatherIcon(wmoCode) {
+  const icons = new Map([
+    [[0], "☀️"],
+    [[1], "🌤"],
+    [[2], "⛅️"],
+    [[3], "☁️"],
+    [[45, 48], "🌫"],
+    [[51, 56, 61, 66, 80], "🌦"],
+    [[53, 55, 63, 65, 57, 67, 81, 82], "🌧"],
+    [[71, 73, 75, 77, 85, 86], "🌨"],
+    [[95], "🌩"],
+    [[96, 99], "⛈"],
+  ]);
+  const arr = [...icons.keys()].find((key) => key.includes(wmoCode));
+  if (!arr) return "NOT FOUND";
+  return icons.get(arr);
+}
+
+function convertToFlag(countryCode) {
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt());
+  return String.fromCodePoint(...codePoints);
+}
+
+function formatDay(dateStr) {
+  return new Intl.DateTimeFormat("en", {
+    weekday: "short",
+  }).format(new Date(dateStr));
+}
